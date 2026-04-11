@@ -11,14 +11,13 @@ window.addEventListener("load", () => {
 });
 
 // ===========================
-// CUSTOM CURSOR (Fixed for Smoothness)
+// CUSTOM CURSOR
 // ===========================
 const cursor = document.getElementById('cursor');
 window.addEventListener('mousemove', e => {
-  // Using transform instead of top/left prevents layout thrashing
-  cursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
-}, { passive: true });
-
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
 window.addEventListener('click', () => {
   cursor.classList.add("click-glow");
   setTimeout(() => cursor.classList.remove("click-glow"), 300);
@@ -81,7 +80,6 @@ function sanitizeNumber(numStr) {
 function animateCounters() {
   if (countersStarted) return;
   const statsSection = document.querySelector("#stats");
-  if (!statsSection) return; // Safety check
   const sectionTop = statsSection.getBoundingClientRect().top;
   if (sectionTop < window.innerHeight - 50) {
     countersStarted = true;
@@ -119,7 +117,7 @@ teamMembers.forEach(member => {
       bars.forEach(bar => {
         const width = bar.style.width;
         bar.style.width = '0';
-        setTimeout(() => { bar.style.width = width; }, 50);
+        setTimeout(() => { bar.style.width = width; }, 500);
       });
     } else {
       skills.classList.add('hidden');
@@ -132,15 +130,11 @@ teamMembers.forEach(member => {
 // ===========================
 const scrollBtn = document.getElementById('scrollTopBtn');
 window.addEventListener('scroll', () => {
-  if (scrollBtn) {
-    scrollBtn.style.display = (window.scrollY > 300) ? 'block' : 'none';
-  }
+  scrollBtn.style.display = (window.scrollY > 300) ? 'block' : 'none';
 });
-if (scrollBtn) {
-  scrollBtn.addEventListener('click', () => {
-    window.scrollTo({top:0, behavior:'smooth'});
-  });
-}
+scrollBtn.addEventListener('click', () => {
+  window.scrollTo({top:0, behavior:'smooth'});
+});
 
 // ===========================
 // BLOG FETCH + MODAL
@@ -156,38 +150,37 @@ blogModal.addEventListener('click', (e) => {
   if (e.target === blogModal) blogModal.classList.remove('active');
 });
 
+// Updated blog URL
 const blogURL = "https://script.google.com/macros/s/AKfycbw7d63ds3TJr-slKMVnG23kv-W8qllyi7-v1GoO_c19tXxaU3YsVr1oisCN_RqEefDD/exec";
 
-if (blogGrid) {
-  fetch(blogURL)
-    .then(res => res.json())
-    .then(posts => {
-      posts.forEach(post => {
-        const card = document.createElement('div');
-        card.className = 'blog-card';
-        const badgeHTML = post.badge
+fetch(blogURL)
+  .then(res => res.json())
+  .then(posts => {
+    posts.forEach(post => {
+      const card = document.createElement('div');
+      card.className = 'blog-card';
+      const badgeHTML = post.badge
+        ? `<img src="https://raw.githubusercontent.com/SlaydDev/website/main/badges/${post.badge.toLowerCase().replace(/\s+/g,'-')}.png" alt="${post.badge}" style="width:24px; height:24px; vertical-align:middle; margin-left:5px;">`
+        : `by ${post.author || "Unknown"}`;
+      card.innerHTML = `
+        <h4>${post.title} ${badgeHTML}</h4>
+        <p>${post.content.split('\n').slice(0,4).join('\n')}...</p>
+      `;
+      card.addEventListener('click', () => {
+        const modalBadgeHTML = post.badge
           ? `<img src="https://raw.githubusercontent.com/SlaydDev/website/main/badges/${post.badge.toLowerCase().replace(/\s+/g,'-')}.png" alt="${post.badge}" style="width:24px; height:24px; vertical-align:middle; margin-left:5px;">`
           : `by ${post.author || "Unknown"}`;
-        card.innerHTML = `
-          <h4>${post.title} ${badgeHTML}</h4>
-          <p>${post.content.split('\n').slice(0,4).join('\n')}...</p>
+        modalContent.innerHTML = `
+          <h2>${post.title} ${modalBadgeHTML}</h2>
+          <p>${post.content.replace(/\n/g,'<br>')}</p>
         `;
-        card.addEventListener('click', () => {
-          const modalBadgeHTML = post.badge
-            ? `<img src="https://raw.githubusercontent.com/SlaydDev/website/main/badges/${post.badge.toLowerCase().replace(/\s+/g,'-')}.png" alt="${post.badge}" style="width:24px; height:24px; vertical-align:middle; margin-left:5px;">`
-            : `by ${post.author || "Unknown"}`;
-          modalContent.innerHTML = `
-            <h2>${post.title} ${modalBadgeHTML}</h2>
-            <p>${post.content.replace(/\n/g,'<br>')}</p>
-          `;
-          blogModal.classList.add('active');
-        });
-        blogGrid.appendChild(card);
+        blogModal.classList.add('active');
       });
-      showToast("Clicking random things can reveal some easter eggs 👀");
-    })
-    .catch(err => console.error("Failed to fetch blog posts:", err));
-}
+      blogGrid.appendChild(card);
+    });
+    showToast("Clicking random things can reveal some easter eggs 👀");
+  })
+  .catch(err => console.error("Failed to fetch blog posts:", err));
 
 // ===========================
 // TOAST NOTIFICATIONS
@@ -207,12 +200,8 @@ function showToast(msg) {
   toast.style.transition = 'opacity 0.3s ease';
   document.body.appendChild(toast);
   setTimeout(() => toast.style.opacity = '1', 50);
-  setTimeout(() => { 
-    toast.style.opacity = '0'; 
-    setTimeout(() => { if(toast.parentNode) document.body.removeChild(toast); }, 300); 
-  }, 4000);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => document.body.removeChild(toast),300); }, 4000);
 }
-
 document.addEventListener('keydown', function(e) {
   if(e.key === 'Escape') {
     const modal = document.querySelector('.blog-modal.active');
