@@ -105,27 +105,6 @@ window.addEventListener("scroll", animateCounters);
 document.addEventListener("DOMContentLoaded", animateCounters);
 
 // ===========================
-// TEAM MEMBER SKILL EXPANSION
-// ===========================
-const teamMembers = document.querySelectorAll('.team-member');
-teamMembers.forEach(member => {
-  member.addEventListener('click', () => {
-    const skills = member.querySelector('.skills-container');
-    if (skills.classList.contains('hidden')) {
-      skills.classList.remove('hidden');
-      const bars = skills.querySelectorAll('.progress-bar div');
-      bars.forEach(bar => {
-        const width = bar.style.width;
-        bar.style.width = '0';
-        setTimeout(() => { bar.style.width = width; }, 500);
-      });
-    } else {
-      skills.classList.add('hidden');
-    }
-  });
-});
-
-// ===========================
 // SCROLL TO TOP BUTTON
 // ===========================
 const scrollBtn = document.getElementById('scrollTopBtn');

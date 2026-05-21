@@ -44,6 +44,8 @@ transform:scale(1.03);
 .card img{
 width:100%;
 display:block;
+height: 200px;
+object-fit: cover;
 }
 
 .watermark{
@@ -62,7 +64,6 @@ font-size:14px;
 }
 
 /* loader */
-
 #loader{
 position:fixed;
 inset:0;
@@ -73,171 +74,91 @@ justify-content:center;
 flex-direction:column;
 z-index:9999;
 }
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #333;
+  border-top: 5px solid #9c3cff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-#terminal{
-color:#9c3cff;
-font-size:18px;
-white-space:pre;
-text-align:center;
-max-width:700px;
+/* load more */
+.load-more-container {
+    text-align: center;
+    margin-top: 40px;
+}
+#loadMoreBtn {
+    background: #9c3cff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: monospace;
 }
 </style>
 </head>
 
 <body>
 
-<div id="loader">
-<div id="terminal"></div>
-</div>
+<div id="loader"><div class="spinner"></div></div>
 
 <h1>All the Memories</h1>
 <div class="gallery" id="gallery"></div>
+<div class="load-more-container">
+    <button id="loadMoreBtn">Load More</button>
+</div>
 
 <script>
-
-const messages = [
-'print("will this ever load?")',
-'print("still here?")',
-'print("please email me if your are stuck here")',
-'print("if you click random things you may find a secret feature")',
-'print("loaaaaaaaaaaaaaaaadddddddddddddddiiiiiiiiiiinnnnnnnnnnnnngggggggg")',
-'print("hello internet")',
-'print("if you are here too long buy more RAM (and please email me if you are stuck here)")',
-'print("i mean its still faster than a windows update")',
-'print(":D")',
-'print("in case you activate a secret easter egg click ` to stop seeing this - just kidding")',
-'print("i mean im gonna take my time")',
-'print("yup,yup just finishing my coffee")',
-'print("i might be ignoring you")'
-]
-
-const terminal = document.getElementById("terminal")
-
-let typing = true
-let infiniteMode = false
-
-function sleep(ms){
-return new Promise(r=>setTimeout(r,ms))
-}
-
-async function typeMessage(msg){
-
-for(let i=0;i<=msg.length;i++){
-terminal.textContent = msg.slice(0,i)
-await sleep(35)
-}
-
-await sleep(800)
-
-for(let i=msg.length;i>=0;i--){
-terminal.textContent = msg.slice(0,i)
-await sleep(15)
-}
-
-}
-
-async function typingLoop(){
-
-while(typing){
-
-for(const msg of messages){
-
-if(!typing) break
-await typeMessage(msg)
-
-}
-
-}
-
-}
-
-async function infiniteMessages(){
-
-while(infiniteMode){
-
-const msg = messages[Math.floor(Math.random()*messages.length)]
-terminal.textContent = msg
-await sleep(4000)
-
-}
-
-}
-
-document.addEventListener("keydown",e=>{
-if(e.key==="`"){
-typing=false
-infiniteMode=true
-infiniteMessages()
-}
-})
+let allFiles = [];
+let displayedCount = 0;
+const pageSize = 12;
+const CDN_BASE = "https://cdn-captainexe.pages.dev/";
 
 async function loadGallery(){
-
-const res = await fetch("captures.json")
-const data = await res.json()
-
-const gallery = document.getElementById("gallery")
-
-const preload = data.files.map(file=>{
-return new Promise(resolve=>{
-const img = new Image()
-img.src = file.url
-img.onload = ()=>resolve(img)
-img.onerror = ()=>resolve(null)
-})
-})
-
-const images = await Promise.all(preload)
-
-images.forEach((img,i)=>{
-
-if(!img) return
-
-const file = data.files[i]
-
-const card = document.createElement("div")
-card.className="card"
-
-const link=document.createElement("a")
-link.href=file.url
-link.target="_blank"
-
-img.alt=file.title
-link.appendChild(img)
-
-const watermark=document.createElement("div")
-watermark.className="watermark"
-watermark.textContent="CaptainEXE"
-
-const title=document.createElement("div")
-title.className="title"
-title.textContent=file.title
-
-card.appendChild(link)
-card.appendChild(watermark)
-card.appendChild(title)
-
-gallery.appendChild(card)
-
-})
-
+    const res = await fetch("captures.json");
+    const data = await res.json();
+    allFiles = data.files;
+    renderGallery();
+    document.getElementById("loader").style.display="none";
 }
 
-async function start(){
-
-const minimumLoad = sleep(10000)  // 10 seconds
-const galleryLoad = loadGallery()
-
-await Promise.all([minimumLoad, galleryLoad])
-
-typing=false
-document.getElementById("loader").style.display="none"
-
+function renderGallery(){
+    const gallery = document.getElementById("gallery");
+    const end = Math.min(displayedCount + pageSize, allFiles.length);
+    
+    for(let i = displayedCount; i < end; i++){
+        const file = allFiles[i];
+        const fileName = file.url.split('/').pop();
+        const card = document.createElement("div");
+        card.className="card";
+        
+        const link = document.createElement("a");
+        link.href = CDN_BASE + fileName;
+        link.target="_blank";
+        
+        const img = new Image();
+        img.src = CDN_BASE + fileName;
+        img.onerror = function() {
+            this.src = "clips/" + fileName;
+            link.href = "clips/" + fileName;
+        };
+        
+        img.alt = file.title;
+        img.loading = "lazy";
+        link.appendChild(img);
+        card.innerHTML += `<div class="watermark">CaptainEXE</div><div class="title">${file.title}</div>`;
+        card.prepend(link);
+        gallery.appendChild(card);
+    }
+    displayedCount = end;
+    if(displayedCount >= allFiles.length) document.getElementById("loadMoreBtn").style.display = "none";
 }
 
-typingLoop()
-start()
-
+document.getElementById("loadMoreBtn").addEventListener("click", renderGallery);
+loadGallery();
 </script>
 
 </body>
