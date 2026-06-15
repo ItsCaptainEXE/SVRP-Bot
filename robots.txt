@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-
-Disallow: /blog/
-
-Sitemap: https://slayddev.vercel.app/sitemap.xml
