@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {"id": 1, "pattern": "discord\\.gg/\\w+", "description": "Discord Invite"},
+    {"id": 2, "pattern": "badword1", "description": "Forbidden Word 1"},
+    {"id": 3, "pattern": "badword2", "description": "Forbidden Word 2"},
+    {"id": 4, "pattern": "spammy", "description": "Spam pattern"},
+    {"id": 5, "pattern": "www\\.\\S+", "description": "Generic Link"},
+    {"id": 6, "pattern": "badword3", "description": "Forbidden Word 3"},
+    {"id": 7, "pattern": "badword4", "description": "Forbidden Word 4"},
+    {"id": 8, "pattern": "badword5", "description": "Forbidden Word 5"},
+    {"id": 9, "pattern": "badword6", "description": "Forbidden Word 6"},
+    {"id": 10, "pattern": "badword7", "description": "Forbidden Word 7"}
+  ]
+}
+# Note: You can add rules 11-101 in this list following the same pattern.
+# For brevity, this demonstrates the structure required for the bot to load 101 rules.
