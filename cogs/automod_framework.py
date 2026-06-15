@@ -8,7 +8,6 @@ class Automod(commands.Cog):
         # Framework to hold 100+ rules
         self.rules = {
             "bad_words": ["badword1", "badword2", "spammy"],
-            "link_patterns": [r"https?://\S+"],
             "spam_threshold": 3
         }
 
@@ -24,12 +23,6 @@ class Automod(commands.Cog):
                 await message.channel.send(f"Automod: {message.author.mention}, that word is forbidden.")
                 return
 
-        # 2. Link Filtering
-        for pattern in self.rules["link_patterns"]:
-            if re.search(pattern, message.content):
-                await message.delete()
-                await message.channel.send(f"Automod: {message.author.mention}, links are not allowed.")
-                return
 
         # TODO: Implement remaining 98+ rules here
         # Suggestion: Use a database or JSON file to load rules dynamically.
