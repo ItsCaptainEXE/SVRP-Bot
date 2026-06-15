@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands, tasks
 import asyncio
 import os
-import requests
 
 class ServerDynamics(commands.Cog):
     def __init__(self, bot):
@@ -30,11 +29,11 @@ class ServerDynamics(commands.Cog):
             await asyncio.sleep(10)
 
     # 2. Server Closed Enforcement
-    @app_commands.command(name="server-close", description="Close the server")
-    async def server_close(self, interaction: discord.Interaction):
+    @commands.command(name="server-close", help="Close the server")
+    async def server_close(self, ctx):
         self.server_open = False
         await self.bot.change_presence(status=discord.Status.dnd)
-        await interaction.response.send_message("Server closed. Kicking unauthorized players.")
+        await ctx.send("Server closed. Kicking unauthorized players.")
         # Logic to check players and kick
         await self._enforce_server_closed()
 
@@ -46,13 +45,16 @@ class ServerDynamics(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         # Trigger Idle Status
+        if message.author.bot: return
         await self.bot.change_presence(status=discord.Status.idle)
-        await asyncio.sleep(3600) # 1 hour
+        await asyncio.sleep(60) # Reduced to 1 min for testing
         await self.bot.change_presence(status=discord.Status.online)
 
     # 4. Automod (Racism Focus)
     @commands.Cog.listener()
-    async def on_message_racism(self, message):
+    async def on_message(self, message):
+        if message.author.bot: return
+        import re
         racist_regex = r"\b(nigger|chink|kike|faggot)\b" # Expand as needed
         if re.search(racist_regex, message.content, re.IGNORECASE):
             await message.author.ban(reason="Racist language")
