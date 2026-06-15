@@ -1,9 +1,0 @@
-{
-  "redirects": [
-    {
-      "source": "/captures",
-      "destination": "/captures/index.html",
-      "permanent": false
-    }
-  ]
-}
