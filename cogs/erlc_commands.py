@@ -16,11 +16,6 @@ class ERLCCommands(commands.Cog):
     async def recur_task(self):
         pass
 
-    @app_commands.command(name="set-recur", description="Set the recurring hint message")
-    async def set_recur(self, interaction: discord.Interaction, message: str):
-        self.recur_message = message
-        await interaction.response.send_message(f"Recurring hint set to: {message}")
-
     @app_commands.command(name="server-status", description="Get ERLC server status")
     async def server_status(self, interaction: discord.Interaction):
         data = send_api_request("GET", "server")
